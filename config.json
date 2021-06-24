@@ -1,0 +1,11 @@
+{
+  "database": {
+    "host": "192.168.50.106",
+    "port": 8086,
+    "user": "pi",
+    "pass": "raspberry",
+    "name": "mydb",
+    "table": "soon",
+    "entity": "entity_id2"
+  }
+}
