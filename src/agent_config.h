@@ -2,13 +2,13 @@
 #define AGENT_AGENT_CONFIG_H
 
 #include "agent_plugin.h"
-#include "lib/ArduinoJson.h"
+#include "rapidjson/document.h"
 #include <functional>
 #include <vector>
 #include <iostream>
 
 struct PluginImpl : public Plugin {
-    DynamicJsonDocument settings;
+    rapidjson::Document settings;
     vector<function<bool()>> listeners;
     string lastError = "";
 

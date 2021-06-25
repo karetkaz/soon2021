@@ -1,6 +1,8 @@
 #include "agent_config.h"
-#include "lib/influxdb.hpp"
 #include <fstream>
+#include <influxdb.hpp>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/istreamwrapper.h>
 
 constexpr char const *dataBase = "database";
 constexpr char const *dbHost = "host";
@@ -16,12 +18,15 @@ constexpr char const *dbResSeries = "series";
 constexpr char const *dbResColumns = "columns";
 constexpr char const *dbResValues = "values";
 
-PluginImpl::PluginImpl(const string& config) : settings(1024) {
+PluginImpl::PluginImpl(const string& config) {
     ifstream input(config);
     if (!input) {
-        throw runtime_error("failed to load config");
+        throw runtime_error("failed to open config");
     }
-    deserializeJson(settings, input);
+    rapidjson::IStreamWrapper stream(input);
+    if (settings.ParseStream(stream).HasParseError()) {
+        throw runtime_error("failed to parse config");
+    }
 }
 
 int PluginImpl::mainLoop() {
@@ -42,37 +47,42 @@ int PluginImpl::mainLoop() {
 }
 
 vector<Plugin::Data> PluginImpl::readData(string entity, int limit) {
-    JsonObject db = settings[dataBase];
-    influxdb_cpp::server_info si(db[dbHost], db[dbPort], db[dbName], db[dbUser], db[dbPass]);
+    rapidjson::Value &db = settings[dataBase];
+    string host = db[dbHost].GetString();
+    int port = db[dbPort].GetInt();
+    string name = db[dbName].GetString();
+    string user = db[dbUser].GetString();
+    string pass = db[dbPass].GetString();
+    influxdb_cpp::server_info si(host, port, name, user, pass);
 
     stringstream query;
-    string response;
-    vector<Plugin::Data> result;
-    query << "select * from " << db[dbTable];
+    query << "select * from " << db[dbTable].GetString();
     if (!entity.empty()) {
-        query << " where " << db[dbEntity] << "='" << entity << "'";
+        query << " where " << db[dbEntity].GetString() << "='" << entity << "'";
     }
     if (limit > 0) {
         query << " limit " << limit;
     }
+
+    string response;
     int status = influxdb_cpp::query(response, query.str(), si);
     if (status != 0) {
-        return result;
+        return {};
     }
 
-    DynamicJsonDocument json(1 << 20);
-    DeserializationError err = deserializeJson(json, response);
-    if (err != DeserializationError::Ok) {
-        string message = "failed to deserialize json: ";
-        throw runtime_error(message + err.c_str());
+    rapidjson::Document json;
+    if (json.Parse(response.c_str()).HasParseError()) {
+        throw runtime_error("failed to parse response");
     }
-    for (auto results : json[dbResResults].as<JsonArray>()) {
-        for (auto series : results[dbResSeries].as<JsonArray>()) {
+
+    vector<Plugin::Data> result;
+    for (auto &results : json[dbResResults].GetArray()) {
+        for (auto &series : results[dbResSeries].GetArray()) {
             // columns: [timestamp, entity_id, value]
-            JsonArray columns = series[dbResColumns];
-            JsonArray values = series[dbResValues];
-            for (auto value : values) {
-                result.emplace_back(Data(columns[2], value[2], value[0]));
+            auto columns = series[dbResColumns].GetArray();
+            auto values = series[dbResValues].GetArray();
+            for (auto &value : values) {
+                result.emplace_back(Data(columns[2].GetString(), value[2].GetDouble(), value[0].GetInt64()));
             }
         }
     }
@@ -81,5 +91,5 @@ vector<Plugin::Data> PluginImpl::readData(string entity, int limit) {
 }
 
 string PluginImpl::getConfig(string property) {
-    return settings[property];
+    return settings[property.c_str()].GetString();
 }

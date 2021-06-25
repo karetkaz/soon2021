@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.17)
 project(Agent)
 
 set(CMAKE_CXX_STANDARD 17)
+include_directories(src/lib)
 # set the output directory for shared libraries to project dir
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bin>)
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bin>)
