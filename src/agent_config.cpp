@@ -1,7 +1,6 @@
 #include "agent_config.h"
 #include <fstream>
 #include <influxdb.hpp>
-#include <rapidjson/prettywriter.h>
 #include <rapidjson/istreamwrapper.h>
 
 constexpr char const *dataBase = "database";
@@ -30,19 +29,22 @@ PluginImpl::PluginImpl(const string& config) {
 }
 
 int PluginImpl::mainLoop() {
-    for (size_t i = 0; !listeners.empty(); i++) {
+    size_t n = 0;
+    for (ssize_t i = 0; !listeners.empty(); i++) {
         if (i >= listeners.size()) {
+            n += 1;
             i = 0;
         }
         try {
             if (!listeners[i]()) {
-                std::cout << "watchdog did not respond." << std::endl;
+                std::cout << "watchdog did not respond @" << n << std::endl;
                 listeners.erase(listeners.begin() + i);
             }
         } catch (exception &e) {
             lastError = e.what();
         }
     }
+    (void) initPlugin;
     return 0;
 }
 
@@ -90,6 +92,24 @@ vector<Plugin::Data> PluginImpl::readData(string entity, int limit) {
     return result;
 }
 
-string PluginImpl::getConfig(string property) {
-    return settings[property.c_str()].GetString();
+const rapidjson::Value* getConfig(const PluginImpl *impl, const string &property) {
+    const rapidjson::Value *value = &impl->settings;
+    stringstream ss(property);
+    string item;
+
+    while (getline(ss, item, '.')) {
+        if (!value->IsObject()) {
+            return nullptr;
+        }
+        value = &(*value)[item.c_str()];
+    }
+    return value;
+}
+
+double PluginImpl::getNumber(string property) {
+    return getConfig(this, property)->GetDouble();
+}
+
+string PluginImpl::getString(string property) {
+    return getConfig(this, property)->GetString();
 }

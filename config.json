@@ -7,5 +7,10 @@
     "name": "mydb",
     "table": "soon",
     "entity": "entity_id2"
+  },
+  "mosquitto": {
+    "host": "localhost",
+    "port": 1883,
+    "topic": "YourTopic"
   }
 }

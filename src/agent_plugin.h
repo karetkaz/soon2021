@@ -23,7 +23,10 @@ struct Plugin {
     virtual vector<Data> readData(string entity = "", int limit = 40) = 0;
 
     /// virtual callback method for the initializer method to access configuration values
-    virtual string getConfig(string property) = 0;
+    virtual double getNumber(string property) = 0;
+
+    /// virtual callback method for the initializer method to access configuration values
+    virtual string getString(string property) = 0;
 
     ///
     virtual void addListener(function<bool()> listener) = 0;

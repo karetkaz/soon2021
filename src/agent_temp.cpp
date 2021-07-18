@@ -4,8 +4,9 @@
 using namespace std;
 
 static Plugin *arg;
-static int maxEvents = 10;
+
 bool onEvent() {
+    static int maxEvents = 10;      // TODO: remove, should be in an infinite loop
     if ((maxEvents -= 1) < 0) {
         return false;
     }

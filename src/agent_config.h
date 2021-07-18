@@ -18,7 +18,9 @@ struct PluginImpl : public Plugin {
 
     vector<Data> readData(string entity, int limit) override;
 
-    string getConfig(string property) override;
+    double getNumber(string property) override;
+
+    string getString(string property) override;
 
     void addListener(function<bool()> listener) override {
         listeners.push_back(listener);

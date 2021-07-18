@@ -2,9 +2,9 @@
 #include <iostream>
 
 using namespace std;
-static int maxEvents = 10;
 
 bool watchdog() {
+    static int maxEvents = 10;      // TODO: remove, should be in an infinite loop
     if ((maxEvents -= 1) < 0) {
         return false;
     }
@@ -19,7 +19,6 @@ bool watchdog() {
     cout << "[test]: watchdog" << endl;
     return true;
 }
-
 
 int initPlugin(Plugin &args) {
     for (const auto &v : args.readData("", 2)) {
