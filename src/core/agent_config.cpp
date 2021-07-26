@@ -1,6 +1,9 @@
 #include "agent_config.h"
 #include <fstream>
+#include <filesystem>
 #include <influxdb.hpp>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 #include <rapidjson/istreamwrapper.h>
 
 constexpr char const *dataBase = "database";
@@ -26,11 +29,12 @@ PluginImpl::PluginImpl(const string& config) {
     if (settings.ParseStream(stream).HasParseError()) {
         throw runtime_error("failed to parse config");
     }
+    basePath = filesystem::absolute(config).parent_path().string() + "/";
 }
 
 int PluginImpl::mainLoop() {
     size_t n = 0;
-    for (ssize_t i = 0; !listeners.empty(); i++) {
+    for (size_t i = 0; !listeners.empty(); i++) {
         if (i >= listeners.size()) {
             n += 1;
             i = 0;
@@ -38,10 +42,11 @@ int PluginImpl::mainLoop() {
         try {
             if (!listeners[i]()) {
                 std::cout << "watchdog did not respond @" << n << std::endl;
-                listeners.erase(listeners.begin() + i);
+                listeners.erase(listeners.begin() + (ssize_t) i);
             }
         } catch (exception &e) {
-            lastError = e.what();
+            lastErrorTimestamp = time(nullptr) * 1000;
+            lastErrorMessage = e.what();
         }
     }
     (void) initPlugin;
@@ -112,4 +117,19 @@ double PluginImpl::getNumber(string property) {
 
 string PluginImpl::getString(string property) {
     return getConfig(this, property)->GetString();
+}
+
+string PluginImpl::reportState() const {
+    rapidjson::StringBuffer s;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+    if (writer.StartObject()) {
+        writer.Key("lastErrorMessage");
+        writer.String(lastErrorMessage.c_str());
+        writer.Key("lastErrorTimestamp");
+        writer.Uint64(lastErrorTimestamp);
+        writer.Key("activeModuleCount");
+        writer.Uint(listeners.size());
+        writer.EndObject();
+    }
+    return s.GetString();
 }

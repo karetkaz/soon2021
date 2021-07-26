@@ -28,7 +28,10 @@ struct Plugin {
     /// virtual callback method for the initializer method to access configuration values
     virtual string getString(string property) = 0;
 
-    ///
+    /// return the absolute path located at the project root
+    virtual string homePath(string file = "") const = 0;
+
+    /// add a listener to be invoked to check if the module still runs
     virtual void addListener(function<bool()> listener) = 0;
 
     /** report the internal state in json format:

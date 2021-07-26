@@ -1,4 +1,4 @@
-#include "agent_plugin.h"
+#include "../agent.h"
 #include <mosquitto.h>
 #include <iostream>
 #include <cstring>
@@ -87,6 +87,7 @@ void on_connect(struct mosquitto *mosq, void *obj, int reason_code) {
 
     /* You may wish to set a flag here to indicate to your application that the
 	 * client is now connected. */
+    (void) obj;
 }
 
 
@@ -97,6 +98,8 @@ void on_connect(struct mosquitto *mosq, void *obj, int reason_code) {
  * received a PUBCOMP from the broker. */
 void on_publish(struct mosquitto *mosq, void *obj, int mid) {
     printf("Message with mid %d has been published.\n", mid);
+    (void) mosq;
+    (void) obj;
 }
 
 /* This function pretends to read some data from a sensor and publish it.*/

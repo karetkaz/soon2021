@@ -1,5 +1,6 @@
-#include "agent_plugin.h"
+#include "../agent.h"
 #include <iostream>
+#include <Python.h>
 
 using namespace std;
 
@@ -24,6 +25,14 @@ int initPlugin(Plugin &args) {
     for (const auto &v : args.readData("", 2)) {
         cout << "[test]: " << v.name << ": " << v.value << "@" << v.timestamp << endl;
     }
+
+    Py_Initialize();
+    PyRun_SimpleString("print('Hello World from Embedded Python string !!!')");
+    string file = args.homePath("test.py");
+    FILE* fp = _Py_fopen(file.c_str(), "r");
+    PyRun_AnyFile(fp, file.c_str());
+    Py_Finalize();
+
     args.addListener(watchdog);
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "agent_plugin.h"
+#include "../agent.h"
 #include <iostream>
 
 using namespace std;
