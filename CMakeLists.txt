@@ -25,3 +25,5 @@ target_link_libraries(testAgent ${PYTHON_LIBRARIES})
 
 add_library(mqttAgent SHARED src/agent/agent_mqtt.cpp)
 target_link_libraries(mqttAgent mosquitto pthread)
+
+add_library(execAgent SHARED src/agent/agent_exec.cpp)

@@ -20,9 +20,24 @@ struct PluginImpl : public Plugin {
 
     vector<Data> readData(string entity, int limit) override;
 
-    double getNumber(string property) override;
+    const rapidjson::Value* getConfig(const string &property) const;
 
-    string getString(string property) override;
+    string getConfig(const string &property, string defValue) const override {
+        const rapidjson::Value *value = getConfig(property);
+        if (value == nullptr || !value->IsString()) {
+            return defValue;
+        }
+        return value->GetString();
+
+    }
+
+    double getConfig(const string &property, double defValue) const override {
+        const rapidjson::Value *value = getConfig(property);
+        if (value == nullptr || !value->IsNumber()) {
+            return defValue;
+        }
+        return value->GetDouble();
+    }
 
     void addListener(function<bool()> listener) override {
         listeners.push_back(listener);

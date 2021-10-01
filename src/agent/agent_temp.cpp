@@ -21,11 +21,12 @@ bool onEvent() {
     return true;
 }
 
-int initPlugin(Plugin &args) {
+int initPlugin(Plugin &args, const string& config) {
     arg = &args;
     for (const auto &v : args.readData()) {
         cout << "[temp]: " << v.name << ": " << v.value << "@" << v.timestamp << endl;
     }
     args.addListener(onEvent);
+    (void) config;
     return 0;
 }

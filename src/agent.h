@@ -23,10 +23,10 @@ struct Plugin {
     virtual vector<Data> readData(string entity = "", int limit = 40) = 0;
 
     /// virtual callback method for the initializer method to access configuration values
-    virtual double getNumber(string property) = 0;
+    virtual double getConfig(const string &property, double defValue) const = 0;
 
     /// virtual callback method for the initializer method to access configuration values
-    virtual string getString(string property) = 0;
+    virtual string getConfig(const string &property, string defValue) const = 0;
 
     /// return the absolute path located at the project root
     virtual string homePath(string file = "") const = 0;
@@ -44,4 +44,4 @@ struct Plugin {
 };
 
 // this forward method declaration needs to be implemented by the plugin, so it can be loaded and executed using dlopen
-extern "C" int initPlugin(Plugin &args);
+extern "C" int initPlugin(Plugin &args, const string& config);

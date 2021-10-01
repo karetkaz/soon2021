@@ -1,6 +1,6 @@
 {
   "database": {
-    "host": "192.168.1.29",
+    "host": "192.168.50.110",
     "port": 8086,
     "user": "pi",
     "pass": "raspberry",
@@ -9,8 +9,23 @@
     "entity": "entity_id2"
   },
   "mosquitto": {
-    "host": "localhost",
+    "module": "mqttAgent.so",
+    "host": "192.168.50.110",
     "port": 1883,
     "topic": "piAgent"
+  },
+  "tempAgent": {
+    "-module": "tempAgent.so",
+    "?device": "/dev/temp1",
+    "?sampleRate": 99,
+    "?autostart": false
+  },
+  "pyAgent1": {
+    "module": "testAgent.so",
+    "script": "test.py"
+  },
+  "execAgent1": {
+    "module": "execAgent.so",
+    "command": "python3 test.py"
   }
 }

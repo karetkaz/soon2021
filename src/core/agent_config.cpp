@@ -1,4 +1,5 @@
 #include "agent_config.h"
+#include <cmath>
 #include <fstream>
 #include <filesystem>
 #include <influxdb.hpp>
@@ -97,8 +98,8 @@ vector<Plugin::Data> PluginImpl::readData(string entity, int limit) {
     return result;
 }
 
-const rapidjson::Value* getConfig(const PluginImpl *impl, const string &property) {
-    const rapidjson::Value *value = &impl->settings;
+const rapidjson::Value* PluginImpl::getConfig(const string &property) const {
+    const rapidjson::Value* value = &settings;
     stringstream ss(property);
     string item;
 
@@ -106,17 +107,12 @@ const rapidjson::Value* getConfig(const PluginImpl *impl, const string &property
         if (!value->IsObject()) {
             return nullptr;
         }
+        if (!value->HasMember(item.c_str())) {
+            return nullptr;
+        }
         value = &(*value)[item.c_str()];
     }
     return value;
-}
-
-double PluginImpl::getNumber(string property) {
-    return getConfig(this, property)->GetDouble();
-}
-
-string PluginImpl::getString(string property) {
-    return getConfig(this, property)->GetString();
 }
 
 string PluginImpl::reportState() const {

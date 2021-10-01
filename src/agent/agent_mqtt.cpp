@@ -4,12 +4,13 @@
 #include <cstring>
 
 // config value keys
-constexpr char const *mqttHost = "mosquitto.host";
-constexpr char const *mqttPort = "mosquitto.port";
-constexpr char const *mqttTopic = "mosquitto.topic";
+constexpr char const *mqttHost = ".host";
+constexpr char const *mqttPort = ".port";
+constexpr char const *mqttTopic = ".topic";
 
 static Plugin *arg;
-static string lastState;
+static string state;
+static string topic = "topic";
 struct mosquitto *mqtt;
 
 void on_connect(struct mosquitto *mosq, void *obj, int reason_code);
@@ -17,7 +18,7 @@ void on_publish(struct mosquitto *mosq, void *obj, int mid);
 void publish_data(struct mosquitto *mosq, const char *message);
 
 bool onEvent() {
-    static int maxEvents = 5000;     // TODO: remove, should be in an infinite loop
+    static int maxEvents = 500000;     // TODO: remove, should be in an infinite loop
     if ((maxEvents -= 1) < 0) {
         mosquitto_destroy(mqtt);
         mosquitto_lib_cleanup();
@@ -25,17 +26,17 @@ bool onEvent() {
     }
 
     string newState = arg->reportState();
-    if (newState == lastState) {
+    if (newState == state) {
         return true;
     }
 
-    lastState = newState;
+    state = newState;
     cout << "[mqtt]: " << newState << endl;
     publish_data(mqtt, newState.c_str());
     return true;
 }
 
-int initPlugin(Plugin &args) {
+int initPlugin(Plugin &args, const string& config) {
     mosquitto_lib_init();
     mqtt = mosquitto_new(nullptr, true, nullptr);
     if (mqtt == nullptr) {
@@ -48,8 +49,9 @@ int initPlugin(Plugin &args) {
     mosquitto_connect_callback_set(mqtt, on_connect);
     mosquitto_publish_callback_set(mqtt, on_publish);
 
-    string host = args.getString(mqttHost);
-    int port = args.getNumber(mqttPort);
+    topic = args.getConfig(config + mqttTopic, topic);
+    string host = args.getConfig(config + mqttHost, "localhost");
+    int port = (int) args.getConfig(config + mqttPort, -1);
     int rc = mosquitto_connect(mqtt, host.c_str(), port, 60);
     if (rc != MOSQ_ERR_SUCCESS) {
         fprintf(stderr, "Error: %s\n", mosquitto_strerror(rc));
@@ -104,7 +106,6 @@ void on_publish(struct mosquitto *mosq, void *obj, int mid) {
 
 /* This function pretends to read some data from a sensor and publish it.*/
 void publish_data(struct mosquitto *mosq, const char *message) {
-    string topic = arg->getString(mqttTopic);
     int rc = mosquitto_publish(mosq, nullptr, topic.c_str(), strlen(message), message, 2, false);
     if (rc != MOSQ_ERR_SUCCESS) {
         fprintf(stderr, "Error publishing: %s\n", mosquitto_strerror(rc));

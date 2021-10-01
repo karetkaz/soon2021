@@ -21,15 +21,15 @@ bool watchdog() {
     return true;
 }
 
-int initPlugin(Plugin &args) {
-    for (const auto &v : args.readData("", 2)) {
-        cout << "[test]: " << v.name << ": " << v.value << "@" << v.timestamp << endl;
-    }
-
+int initPlugin(Plugin &args, const string& config) {
     Py_Initialize();
     PyRun_SimpleString("print('Hello World from Embedded Python string !!!')");
-    string file = args.homePath("test.py");
+    string file = args.homePath(args.getConfig(config + ".script", "undefined.py"));
     FILE* fp = _Py_fopen(file.c_str(), "r");
+    if (fp == NULL) {
+        Py_Finalize();
+        throw runtime_error("Failed to open file: " + file);
+    }
     PyRun_AnyFile(fp, file.c_str());
     Py_Finalize();
 
