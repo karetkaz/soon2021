@@ -3,7 +3,7 @@ project(Agent)
 
 find_package(PythonLibs REQUIRED)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 link_directories(src/lib/mosquitto/lib)
 include_directories(src/lib src/lib/mosquitto/include)
 # set the output directory for shared libraries to project dir
@@ -27,3 +27,4 @@ add_library(mqttAgent SHARED src/agent/agent_mqtt.cpp)
 target_link_libraries(mqttAgent mosquitto pthread)
 
 add_library(execAgent SHARED src/agent/agent_exec.cpp)
+target_link_libraries(execAgent m pthread)

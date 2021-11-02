@@ -17,7 +17,7 @@ struct Plugin {
     };
 
     /// name of the initializer method in the plugin files
-    static constexpr const char *initName = "initPlugin";
+    static constexpr const char * const initName = "initPlugin";
 
     /// virtual callback method for the initializer method to query data from database
     virtual vector<Data> readData(string entity = "", int limit = 40) = 0;

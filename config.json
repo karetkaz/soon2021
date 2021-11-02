@@ -27,5 +27,12 @@
   "execAgent1": {
     "module": "execAgent.so",
     "command": "python3 test.py"
+  },
+  "execAgent2": {
+    "module": "execAgent.so",
+    "command": "date +'%Y-%m-%d %H:%M:%S.%3N'",
+    "samples": 1200,
+    "rate": 1000,
+    "url": "context broker url"
   }
 }
