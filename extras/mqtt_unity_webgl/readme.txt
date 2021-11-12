@@ -1,1 +1,1 @@
-testat OK pe xampp
+de testat cu xampp
