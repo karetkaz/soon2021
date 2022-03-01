@@ -1,47 +1,75 @@
-#include <unordered_map>
-#include <functional>
 #include <string>
 #include <vector>
-#include <utility>
 
-using namespace std;
-
+/**
+ * base class of the Plugin object, given to the agents
+ * allows the agent to query data from influx database
+ * allows the agent to access to the configuration
+ */
 struct Plugin {
 
-    struct Data {
-        string name;
-        double value;
-        long timestamp;
+	/**
+	 * Base class of a specialized Agent
+	 */
+	class Agent {
+		friend class PluginImpl;
+		Agent *next = nullptr;
 
-        Data(string name, double value, long timestamp) : name(name), value(value), timestamp(timestamp) {}
-    };
+	protected:
+		Plugin &arg;
 
-    /// name of the initializer method in the plugin files
-    static constexpr const char * const initName = "initPlugin";
+		explicit Agent(Plugin &arg) : arg(arg) {};
 
-    /// virtual callback method for the initializer method to query data from database
-    virtual vector<Data> readData(string entity = "", int limit = 40) = 0;
+		/** returns if the plugin is still alve
+		 * in case there is an error it should be thrown
+		 */
+		virtual bool check() = 0;
 
-    /// virtual callback method for the initializer method to access configuration values
-    virtual double getConfig(const string &property, double defValue) const = 0;
+		/// if check returns false, the listener will be destroyed
+		virtual ~Agent() = default;
+	};
 
-    /// virtual callback method for the initializer method to access configuration values
-    virtual string getConfig(const string &property, string defValue) const = 0;
+	/**
+	 * Entity data returned from influx database
+	 */
+	struct Data {
+		std::string name;
+		long timestamp;
+		double value;
 
-    /// return the absolute path located at the project root
-    virtual string homePath(string file = "") const = 0;
+		Data(std::string name, long timestamp, double value)
+			: name(std::move(name))
+			, timestamp(timestamp)
+			, value(value) {
+		}
+	};
 
-    /// add a listener to be invoked to check if the module still runs
-    virtual void addListener(function<bool()> listener) = 0;
+	/// name of the initializer method in the plugin files
+	static constexpr const char *const initName = "initPlugin";
 
-    /** report the internal state in json format:
-      * active module count
-      * last error: database connection failure, etc...
-      * number of executed tasks in the last hour
-      * number of failed tasks in the last hour
-    */
-    virtual string reportState() const = 0;
+	/// virtual method for the agents to query data from influx database
+	virtual std::vector<Data> readData(std::string entity = "", int limit = 100) = 0;
+
+	/// virtual method for the agents to access configuration values
+	virtual double getConfig(const std::string &property, double defValue) const = 0;
+
+	/// virtual method for the agents to access configuration values
+	virtual std::string getConfig(const std::string &property, std::string defValue) const = 0;
+
+	/// return the absolute path located at the project root
+	virtual std::string homePath(std::string file = "") const = 0;
+
+	/// add a listener to be invoked to check if the module still runs, and if there are errors
+	virtual void addAgent(Agent *listener) = 0;
+
+	/** report the internal state in json format:
+	  * active module count
+	  * last error: database connection failure, etc...
+	  * number of executed tasks in the last hour
+	  * number of failed tasks in the last hour
+	*/
+	virtual std::string reportState() const = 0;
 };
 
-// this forward method declaration needs to be implemented by the plugin, so it can be loaded and executed using dlopen
-extern "C" int initPlugin(Plugin &args, const string& config);
+/// this method declaration needs to be implemented by the plugin, so it can be loaded and executed using dlopen
+extern "C" int initPlugin(Plugin &args, const std::string &config);

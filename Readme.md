@@ -26,7 +26,38 @@ listener 8083
 protocol websockets
 ```
 
+### set the mqtt host
+```shell
+export mqtthost=127.0.0.1
+```
+
 ### show messages sent on given topic
 ```shell
 mosquitto_sub -h localhost -t "piAgent"
+```
+
+### list the running agents
+```shell
+mosquitto_pub -h "$mqtthost" -t "configure" -m "ls"
+```
+
+### list the running agents with their process id
+```shell
+mosquitto_pub -h "$mqtthost" -t "configure" -m "ps"
+```
+
+### list the running agent(s) and their configuration
+```shell
+mosquitto_pub -h "$mqtthost" -t "configure" -m "get"
+#mosquitto_pub -h "$mqtthost" -t "configure" -m "get@AgentUser"
+```
+
+### restart a running agent and their configuration
+```shell
+mosquitto_pub -h "$mqtthost" -t "configure" -m "restart@AgentUser"
+```
+
+### change the configuration of an agent and restart it
+```shell
+mosquitto_pub -h "$mqtthost" -t "configure" -m 'AgentUser: {"a": "xyx"}'
 ```

@@ -1,6 +1,6 @@
 {
   "database": {
-    "host": "192.168.50.110",
+    "host": "127.0.0.1",
     "port": 8086,
     "user": "pi",
     "pass": "raspberry",
@@ -10,12 +10,13 @@
   },
   "mosquitto": {
     "module": "mqttAgent.so",
-    "host": "192.168.50.110",
+    "host": "127.0.0.1",
     "port": 1883,
-    "topic": "piAgent"
+    "topic": "piAgent",
+    "user": "AgentSmith"
   },
   "tempAgent": {
-    "-module": "tempAgent.so",
+    "?module": "tempAgent.so",
     "?device": "/dev/temp1",
     "?sampleRate": 99,
     "?autostart": false
@@ -24,15 +25,17 @@
     "module": "testAgent.so",
     "script": "test.py"
   },
-  "execAgent1": {
+  "execAgentPython": {
+    "command": "python test.py",
     "module": "execAgent.so",
-    "command": "python3 test.py"
+    "-timeout": 10000,
+    "samples": 30,
+    "sampleRate": 1000
   },
-  "execAgent2": {
-    "module": "execAgent.so",
+  "execAgentTime": {
     "command": "date +'%Y-%m-%d %H:%M:%S.%3N'",
-    "samples": 1200,
-    "rate": 1000,
-    "url": "context broker url"
+    "module": "execAgent.so",
+    "-timeout": 10000,
+    "sampleRate": 300
   }
 }
