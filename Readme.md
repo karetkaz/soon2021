@@ -46,15 +46,20 @@ mosquitto_pub -h "$mqtthost" -t "configure" -m "ls"
 mosquitto_pub -h "$mqtthost" -t "configure" -m "ps"
 ```
 
-### list the running agent(s) and their configuration
+### list the running agent(s) configuration
 ```shell
-mosquitto_pub -h "$mqtthost" -t "configure" -m "get"
-#mosquitto_pub -h "$mqtthost" -t "configure" -m "get@AgentUser"
+mosquitto_pub -h "$mqtthost" -t "configure" -m "get@AgentUser"
+#mosquitto_pub -h "$mqtthost" -t "configure" -m "get"
 ```
 
-### restart a running agent and their configuration
+### restart a running agent
 ```shell
-mosquitto_pub -h "$mqtthost" -t "configure" -m "restart@AgentUser"
+mosquitto_pub -h "$mqtthost" -t "configure" -m "restart@AgentUser@<pid>"
+```
+
+### stop a running agent
+```shell
+mosquitto_pub -h "$mqtthost" -t "configure" -m "stop@AgentUser@<pid>"
 ```
 
 ### change the configuration of an agent and restart it

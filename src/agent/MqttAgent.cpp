@@ -20,7 +20,7 @@ static string topic;
 static string configFile;
 constexpr char const *notifyTopic = "topic";
 constexpr char const *configTopic = "configure";
-constexpr char const *configFilename = "config_.json";
+constexpr char const *configFilename = "config.json";
 static struct mosquitto *mosq;
 
 void exec(const string &cmd) {
@@ -185,7 +185,7 @@ static void on_message(struct mosquitto *mosq, void *userdata, const struct mosq
 	}
 
 	if (strcmp((char *) message->payload, "ps") == 0) {
-		string mgs = user + "@" + to_string(getpid());
+		string mgs = "ps@" + user + "@" + to_string(getpid());
 		const char *usr = mgs.c_str();
 		mosquitto_publish(mosq, nullptr, configTopic, (int) strlen(usr), usr, 2, false);
 		return;
@@ -217,14 +217,15 @@ static void on_message(struct mosquitto *mosq, void *userdata, const struct mosq
 		return;
 	}
 
-	string restartUser = "restart@" + user;
+	string restartUser = "restart@" + user + "@" + to_string(getpid());
 	if (strcmp((char *) message->payload, restartUser.c_str()) == 0) {
-		ifstream config(configFile);
-		if (!config) {
-			cout << "cannot open config file: " << configFile << endl;
-			return;
-		}
 		exec("./Agent &> /dev/null &");
+		exit(-1);
+		return;
+	}
+
+	string stopUser = "stop@" + user + "@" + to_string(getpid());
+	if (strcmp((char *) message->payload, stopUser.c_str()) == 0) {
 		exit(-1);
 		return;
 	}
